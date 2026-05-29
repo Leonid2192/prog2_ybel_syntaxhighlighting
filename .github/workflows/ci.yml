@@ -9,7 +9,6 @@ on:
     workflow_dispatch: # Ermöglicht das manuelle Starten auf GitHub
 
 jobs:
-    # Job 1: Kompilieren (Prüfen, ob es überhaupt fehlerfrei baut)
     build:
         runs-on: ubuntu-latest
         steps:
@@ -20,8 +19,7 @@ jobs:
                   java-version: '21'
                   distribution: 'temurin'
             - name: Compile Code
-              run: ./gradlew compileJava
-
+              run: ./gradlew classes
     # Job 2: Tests ausführen (Deine Token- und Highlighter-Tests)
     test:
         needs: build # Wartet, bis der Build-Job erfolgreich war
