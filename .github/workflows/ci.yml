@@ -1,12 +1,11 @@
 name: Java CI Pipeline
 
-# Trigger: Wann soll der Roboter anspringen?
 on:
     pull_request:
         branches:
             - master
             - main
-    workflow_dispatch: # Ermöglicht das manuelle Starten auf GitHub
+    workflow_dispatch:
 
 jobs:
     build:
@@ -20,9 +19,9 @@ jobs:
                   distribution: 'temurin'
             - name: Compile Code
               run: ./gradlew classes
-    # Job 2: Tests ausführen (Deine Token- und Highlighter-Tests)
+
     test:
-        needs: build # Wartet, bis der Build-Job erfolgreich war
+        needs: build
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -34,7 +33,6 @@ jobs:
             - name: Run JUnit Tests
               run: ./gradlew test
 
-    # Job 3: Formatierung prüfen (Spotless-Plugin des Profs kontrollieren lassen)
     format:
         needs: build
         runs-on: ubuntu-latest
