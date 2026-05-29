@@ -3,9 +3,8 @@ package highlighting.presets;
 import static org.junit.jupiter.api.Assertions.*;
 
 import highlighting.core.HighlightRegion;
-import java.util.List;
-
 import highlighting.regex.RegexHighlighter;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 public class RegexHighlighterTest {
