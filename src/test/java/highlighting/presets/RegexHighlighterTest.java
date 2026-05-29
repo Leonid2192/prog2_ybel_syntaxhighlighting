@@ -1,9 +1,11 @@
-package highlighting.regex;
+package highlighting.presets;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 import highlighting.core.HighlightRegion;
 import java.util.List;
+
+import highlighting.regex.RegexHighlighter;
 import org.junit.jupiter.api.Test;
 
 public class RegexHighlighterTest {
