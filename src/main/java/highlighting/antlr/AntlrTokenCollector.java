@@ -3,6 +3,7 @@ package highlighting.antlr;
 import highlighting.core.HighlightRegion;
 import highlighting.core.SyntaxHighlighter;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 import org.antlr.v4.runtime.*;
 
@@ -31,6 +32,59 @@ public class AntlrTokenCollector extends SyntaxHighlighter {
   // present).
   @Override
   public List<HighlightRegion> collectMatches(String text) {
-    throw new UnsupportedOperationException("not implemented yet");
+      List<HighlightRegion> regions = new ArrayList<>();
+
+      // ANTLR-Infrastruktur aufbauen
+      CharStream charStream = CharStreams.fromString(text);
+      MiniJavaLexer lexer = new MiniJavaLexer(charStream);
+      CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+
+      // Token-Stream initialisieren und alle Token laden
+      tokenStream.fill();
+      List<Token> tokens = tokenStream.getTokens();
+
+      for (Token token : tokens) {
+          // EOF (End of File) ignorieren
+          if (token.getType() == Token.EOF) {
+              continue;
+          }
+
+          // Bestimme den Typ/Style basierend auf dem Token-Typ aus der Grammatik
+          Color styleCategory = mapTokenToStyle(token.getType());
+
+          if (styleCategory != null) {
+              int start = token.getStartIndex();
+              // ANTLR StopIndex ist inklusiv, HighlightRegion verlangt oft die Länge oder exklusives Ende
+              int end = token.getStopIndex() + 1;
+
+              regions.add(new HighlightRegion(start, end, styleCategory));
+          }
+      }
+
+      return regions;
   }
+
+    private Color mapTokenToStyle(int tokenType) {
+        switch (tokenType) {
+            case MiniJavaLexer.BLOCK_COMMENT:
+            case MiniJavaLexer.LINE_COMMENT:
+                return Color.GREEN; // Oder welche Farbe Kommentare haben sollen
+
+            case MiniJavaLexer.PUBLIC:
+            case MiniJavaLexer.CLASS:
+            case MiniJavaLexer.RETURN:
+            case MiniJavaLexer.IF:
+            case MiniJavaLexer.ELSE:
+            case MiniJavaLexer.WHILE:
+                return Color.ORANGE; // Oder Color.BLUE für Keywords
+
+            case MiniJavaLexer.STRING_LITERAL:
+                return Color.BLUE;
+
+            default:
+                return null; // Keine Farbe -> Standardtext
+        }
+    }
+
+
 }

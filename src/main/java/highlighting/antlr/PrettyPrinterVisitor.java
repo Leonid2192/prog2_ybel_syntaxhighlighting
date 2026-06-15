@@ -3,6 +3,7 @@ package highlighting.antlr;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+
 /// MiniJava Pretty Printer (minimal, stateful)
 ///
 /// Requirements:
@@ -40,44 +41,74 @@ public final class PrettyPrinterVisitor extends MiniJavaBaseVisitor<Void> {
   // visitClassBody, visitBlock, and visitStatement
   // ----------------------------------------------------
 
-  @Override
-  public Void visitCompilationUnit(MiniJavaParser.CompilationUnitContext ctx) {
-    // TODO:
-    // Produce a nicely structured compilation unit:
-    // - package declaration (if present),
-    // - import declarations (one per line),
-    // - type declarations (one after another),
-    // with sensible blank lines between these parts.
-    return null;
-  }
+    @Override
+    public Void visitCompilationUnit(MiniJavaParser.CompilationUnitContext ctx) {
+        // Gehe durch alle Kindknoten der Datei (z.B. package, imports, class)
+        for (int i = 0; i < ctx.getChildCount(); i++) {
+            var child = ctx.getChild(i);
+            visit(child);
 
-  @Override
-  public Void visitClassBody(MiniJavaParser.ClassBodyContext ctx) {
-    // TODO:
-    // Format the contents of a class body:
-    // - opening and closing brace,
-    // - one member declaration per line,
-    // - members indented relative to the class.
-    return null;
-  }
+            // Nach dem Package-Statement oder einem Import werfen wir eine Leerzeile ein,
+            // um die Teile laut TODO sinnvoll zu trennen.
+            String childClass = child.getClass().getSimpleName();
 
-  @Override
-  public Void visitBlock(MiniJavaParser.BlockContext ctx) {
-    // TODO:
-    // Format a block:
-    // - opening and closing brace,
-    // - one blockStatement per line,
-    // - nested blocks indented further.
-    return null;
-  }
+            if (childClass.contains("Package") || childClass.contains("Import")) {
+                nl();
+            }
+        }
 
-  @Override
-  public Void visitStatement(MiniJavaParser.StatementContext ctx) {
-    // TODO:
-    // Ensure that each statement (if/while/return/block/...) ends up
-    // on exactly one line, with proper indentation for nested statements.
-    return null;
-  }
+        return null;
+    }
+
+    @Override
+    public Void visitClassBody(MiniJavaParser.ClassBodyContext ctx) {
+        // Öffnende Klammer '{' ausgeben und in neue Zeile springen
+        writeln("{");
+        currentIndent++; // Einrückung für die Member erhöhen
+
+        // Alle Member (Felder, Methoden) zwischen { und } besuchen.
+        // Index 0 ist '{', der letzte Index ist '}'
+        for (int i = 1; i < ctx.getChildCount() - 1; i++) {
+            visit(ctx.getChild(i));
+            nl(); // Jedes Member bekommt eine eigene Zeile
+        }
+
+        currentIndent--; // Einrückung wieder zurücksetzen
+        write("}");      // Schließende Klammer auf neuer Zeile ausgeben
+        return null;
+    }
+
+    @Override
+    public Void visitBlock(MiniJavaParser.BlockContext ctx) {
+        writeln("{");
+        currentIndent++; // Weiter reinwandern
+
+        // Alle Statements im Block ablaufen (ohne die äußeren Klammern)
+        for (int i = 1; i < ctx.getChildCount() - 1; i++) {
+            visit(ctx.getChild(i));
+        }
+
+        currentIndent--; // Wieder rauswandern
+        write("}");
+        return null;
+    }
+
+    @Override
+    public Void visitStatement(MiniJavaParser.StatementContext ctx) {
+        // Wir lassen ANTLR das Statement (und seine Unterknoten) ausgeben
+        visitChildren(ctx);
+
+        // Nach JEDEM normalen Statement machen wir einen Zeilenumbruch.
+        // Wenn das Statement ein Block ({...}), ein If oder ein While war,
+        // haben diese meistens schon ihr eigenes 'nl()' am Ende getriggert.
+        // Für einfache Statements (Zuweisungen, Returns) erzwingen wir hier die neue Zeile:
+        if (ctx.block() == null && ctx.IF() == null && ctx.getChildCount() > 0) {
+            // Da wir im Screenshot sehen, dass ctx.IF() existiert:
+            // Wenn es kein Block und kein If-Statement ist, machen wir nach dem einfachen Statement einen Umbruch.
+            nl();
+        }
+        return null;
+    }
 
   // ---------------- helper methods ----------------
 
